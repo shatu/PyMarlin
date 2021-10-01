@@ -25,7 +25,7 @@ class CallbackInterface(ABC):
         """Hook before training epoch (before model forward).
 
         Args:
-            global_step (int): [description]
+            global_step (int): current global step
             epoch (int): Current training epoch
         """
 
@@ -43,7 +43,7 @@ class CallbackInterface(ABC):
         Hook after training epoch.
 
         Args:
-            global_step (int): [description]
+            global_step (int): current global step
             train_step_collated_outputs (list): all train step outputs in a list.
                 If train_step returns loss, logits train_step_collated_outputs will have [loss_collated, logits_collated]
         """
@@ -52,7 +52,7 @@ class CallbackInterface(ABC):
         """Hook after each backward
 
         Args:
-            global_step (int): [description]
+            global_step (int): current global step
             loss_tensor(torch.Tensor): Undetached loss tensor
         """
 
@@ -60,10 +60,10 @@ class CallbackInterface(ABC):
         """Update value at end of end of end of variable
 
         Args:
-            global_step (int): [description]
+            global_step (int): current global step
             val_step_collated_outputs : all val step outputs in a list.
                 If val_step returns loss, logits train_step_collated_outputs will have [loss_collated, logits_collated]
-            key (str, optional): The id of the validation dataloader.
+            key (str, optional): The key of the validation dataloader.
                 Defaults to "default".
         """
 
@@ -71,7 +71,7 @@ class CallbackInterface(ABC):
         """Hook after training finishes
 
         Args:
-            global_step (int): [description]
+            global_step (int): current global step
         """
 
 
@@ -102,14 +102,14 @@ class ModuleInterface(torch.nn.Module, CallbackInterface):
 
     @abstractmethod
     def get_train_dataloader(
-        self, sampler:type, batch_size:int
+        self, sampler:torch.utils.data.Sampler, batch_size:int
         ) -> torch.utils.data.DataLoader:
         """
-        Returns a dataloader for the training loop .
+        Returns a dataloader for the training loop.
         Called every epoch.
 
         Args:
-            sampler (type): data sampler type which is a derived class of torch.utils.data.Sampler
+            sampler (torch.utils.data.Sampler): data sampler type which is a derived class of torch.utils.data.Sampler
             Create concrete sampler object before creating dataloader.
             batch_size (int): batch size per step per device
 
@@ -135,7 +135,7 @@ class ModuleInterface(torch.nn.Module, CallbackInterface):
         Called every epoch .
 
         Args:
-            sampler (type): data sampler type which is a derived class of torch.utils.data.Sampler
+            sampler (torch.utils.data.Sampler): data sampler type which is a derived class of torch.utils.data.Sampler
             Create concrete sampler object before creating dataloader.
             batch_size (int): validation batch size per step per device
 
@@ -146,13 +146,13 @@ class ModuleInterface(torch.nn.Module, CallbackInterface):
             with key as the data id and value as dataloader
         """
 
-    def get_test_dataloaders(self, sampler, batch_size):
+    def get_test_dataloaders(self, sampler: torch.utils.data.Sampler, batch_size: int):
         """
         Returns test dataloaders
 
         Args:
-            sampler ([type]): [description]
-            batch_size ([type]): [description]
+            sampler (torch.utils.data.Sampler): data sampler type which is a derived class of torch.utils.data.Sampler
+            batch_size (int): test batch size per step per device
         """
         pass
 
@@ -190,48 +190,48 @@ class ModuleInterface(torch.nn.Module, CallbackInterface):
 
     @abstractmethod
     def train_step(
-        self, global_step: int, batch, device : Union[torch.device, str, int]
+        self, global_step: int, batch, device: Union[torch.device, str, int]
         ) -> Union[torch.Tensor, Tuple]:
         """
         Train a single train step .
         Batch should be moved to device before any operation.
 
         Args:
-            global_step (int): [description]
+            global_step (int): current global step
             batch ([type]): output of train dataloader step
             device (Union[torch.device, str, int]): device
 
         Returns:
             Union[torch.Tensor, Iterable[torch.Tensor]]:
                 The first return value must be the loss tensor.
-                Can return more than one values in output. All outputs must be tensors
+                Can return more than one value in output. All outputs must be tensors
                 Callbacks will collate all outputs.
         """
 
 
 
     @abstractmethod
-    def val_step(self, global_step: int, batch, device) -> Tuple:
+    def val_step(self, global_step: int, batch, device: Union[torch.device, str, int]) -> Tuple:
         """
         Runs a single Validation step .
 
         Args:
-            global_step (int): [description]
+            global_step (int): current global step
             batch ([type]): [description]
-            device ([type]): [description]
+            device (Union[torch.device, str, int]): device
         Returns:
             Union[torch.Tensor, Iterable[torch.Tensor]]: values that need to be collected - loss, logits etc.
             All outputs must be tensors
         """
 
-    def test_step(self, global_step: int, batch, device):
+    def test_step(self, global_step: int, batch, device: Union[torch.device, str, int]):
         """
         Runs a single test step .
 
         Args:
-            global_step (int): [description]
+            global_step (int): current global step
             batch ([type]): [description]
-            device ([type]): [description]
+            device (Union[torch.device, str, int]): device
         """
 
     def get_state(self):
